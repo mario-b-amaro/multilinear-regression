@@ -14,7 +14,7 @@ Two examples of application of the script:
 
 # Structure of the Repository
 
-This repository has four files: 
+This repository has three files: 
 
 - README.md
 - MultilinearGeneralFit.py (A script to perform the multilinear regression and obtain the optimal parameters, as well as clone the original data file and add the model values, errors, and more)
