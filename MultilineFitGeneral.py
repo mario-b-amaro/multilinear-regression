@@ -1,6 +1,6 @@
 import numpy as np
 import math as m
-import matplotlib
+import matplotlib.pyplot as plt
 import time
 
 begg=time.time() # UNIX TIME BEGINNING OF RUN
@@ -22,11 +22,11 @@ for i in range(len(k)):
 
 # Define an interval and step for each parameter a, b, c
 
-alist=np.linspace(-0.017,-0.012,11)
-blist=np.linspace(0.48,0.68,12)
-clist=np.linspace(-2.63,-2.66,6)
+alist=np.linspace(-0.07,-0.04,10)
+blist=np.linspace(1.6,2,10)
+clist=np.linspace(-2.35,-2.5,8)
 
-nn=8 # Number of lines to fit the data to
+nn=4 # Number of lines to fit the data to
 dlist=np.identity(nn) # Identity matrix (delta)
 
 # ------ CALCULATING OPTIMAL PARAMETERS ------
@@ -74,17 +74,18 @@ combo=coord_sum_list[index] # Combo list is the optimal [a,b,c] combination
 
 xx=np.linspace(17.3,23.7,10)
 
-matplotlib.pyplot.scatter(xlist,ylist)
-matplotlib.pyplot.ylim([-2.8,-0.6])
-matplotlib.pyplot.xlim([17,24])
+plt.scatter(xlist,ylist)
+plt.ylim([-2.8,-0.6])
+plt.xlim([17,24])
 for n in range(nn):
-    matplotlib.pyplot.plot(xx,n*(combo[0]*xx+combo[1])+combo[2],'--k')
-matplotlib.pyplot.show()    
+    plt.plot(xx,n*(combo[0]*xx+combo[1])+combo[2],'--k')
+plt.show()    
     
-matplotlib.pyplot.plot(err_sum_list,'k')
+plt.plot(err_sum_list,'k')
 
 fin=time.time() # UNIX TIME END OF RUN
 
 print('Time to run:', fin-begg)
 print('The set of optimal parameters is:',combo)
 print('The variance is:',min(err_sum_list)/(len(err_sum_list)*len(xlist)),'(n =',nn,')')
+
