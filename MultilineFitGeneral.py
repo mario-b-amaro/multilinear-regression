@@ -17,16 +17,17 @@ for i in range(len(k)):
     r=m.sqrt(k[i][1]*(k[i][0]**(1/3)+1)) 
     xlist.append(r)
     ylist.append(m.log10(k[i][2]))
+    elist.append(k[i][3])
     
 # ------ DEFINING N AND TEST INTERVAL ------
 
 # Define an interval and step for each parameter a, b, c
 
-alist=np.linspace(0,-0.1,15)
-blist=np.linspace(-3.5,0,15)
-clist=np.linspace(-1,-2.5,12)
+alist=np.linspace(0,-0.1,10)
+blist=np.linspace(-3.5,0,10)
+clist=np.linspace(-1,-2.5,8)
 
-nn=4 # Number of lines to fit the data to
+nn=2 # Number of lines to fit the data to
 dlist=np.identity(nn) # Identity matrix (delta)
 
 # ------ CALCULATING OPTIMAL PARAMETERS ------
@@ -116,9 +117,20 @@ for i in range(len(k)):
     
 f.close()
 
+# ------ OBTAINING GROUND ERROR ------
+
+xrange=np.linspace(0,len(modelerr),100)
+plt.figure(constrained_layout=True)
+plt.plot(xrange,0*xrange,'--r')
+plt.scatter(range(len(modelerr)),modelerr,s=75,c='k',marker='.')
+plt.errorbar(range(len(modelerr)),modelerr,yerr=elist,c='k',fmt='.')
+plt.ylabel(r'$\mathregular{10^{y_{i}}-10^{(k-1)(\alpha x_{i}+\beta)-o}}$')
+plt.xlabel('Data Point (i)')
+plt.savefig('abserrors', dpi=800)
 
 fin=time.time() # UNIX TIME END OF RUN
 
 print('Time to run:', fin-begg)
 print('The set of optimal parameters is:',combo)
 print('The variance is:',min(err_sum_list)/(len(xlist)),'(n =',nn,')')
+
