@@ -18,6 +18,6 @@ This repository has three files:
 
 - README.md
 - MultilinearGeneralFit.py (A script to perform the multilinear regression and obtain the optimal parameters, as well as clone the original data file and add the model values, errors, and more)
-- xxxxx.txt (An example data file - it is important that the used data file has this format)
+- Data.txt (An example data file - it is important that the used data file has this format)
 
 
