@@ -14,7 +14,7 @@ Two practical examples of application of the script:
 
 # Structure of the Repository
 
-This repository has three files: 
+This repository has five files: 
 
 - *README.md*
 
