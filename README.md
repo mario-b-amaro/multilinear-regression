@@ -16,8 +16,23 @@ Two practical examples of application of the script:
 
 This repository has three files: 
 
-- README.md
-- MultilinearGeneralFit.py (A script to perform the multilinear regression and obtain the optimal parameters, as well as clone the original data file and add the model values, errors, and more)
-- Data.txt (An example data file - it is important that the used data file has this format)
+- *README.md*
+
+- *MultilinearGeneralFit.py*: full script featuring:
+      > Multilinear regression to determine the optimal parameters (minimum square error approach)
+      > Clone the original data file and add to it the model values, errors, and more
+      > Plot various information of interest:
+            . Optimal parameter model + Data Points
+            . Deviations from the model
+            . Distribution of deviations from the model + Normal fit
+            . "Collapsed" fit (transform multilinear into the equivalent linear fit conserving variance)
+            . Bayesian fit (adapted from https://github.com/krasserm/bayesian-machine-learning)
+            
+- *MultilinearPlotter.py*: shortened script, equivalent to MultilinearGeneralFit.py, but without calculating optimal parameters. Useful if this has been calculated and only plotting is of interest.
+
+- *Data.txt*: an example data file - it is important that the used data file has this format, so that the data retrieval works - or else, the code might need to be changed to accomodate for that
+
+- *Alternative Fits* folder: a folder with alternative fitting types. Currently featuring only Minimax approach:
+      > *MultilineFit_Minimax.py*: A script to calculate the optimal parameters to fit the data using a minimax approach (minimizing the maximum deviation) and plot it.
 
 
