@@ -33,6 +33,6 @@ This repository has three files:
 - *Data.txt*: an example data file - it is important that the used data file has this format, so that the data retrieval works - or else, the code might need to be changed to accomodate for that
 
 - *Alternative Fits* folder: a folder with alternative fitting types. Currently featuring only Minimax approach:
-      > *MultilineFit_Minimax.py*: A script to calculate the optimal parameters to fit the data using a minimax approach (minimizing the maximum deviation) and plot it.
+      > *MultilineFit_Minimax.py*: A script to calculate the optimal parameters to fit the data using a minimax approach (minimizing the maximum deviation) and plot it. Plots also MSE optimal parameters, for comparison.
 
 
