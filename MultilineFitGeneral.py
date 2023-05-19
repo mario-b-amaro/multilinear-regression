@@ -26,11 +26,11 @@ for i in range(len(k)):
 
 # Define an interval and step for each parameter a, b, c
 
-alist=np.linspace(-0.0663636363636,0,1)
-blist=np.linspace(2.05,0,1)
-clist=np.linspace(-2.505,-0.5,1)
+alist=np.linspace(-0.014,-0.01,1)
+blist=np.linspace(0.56727272,0.75,1)
+clist=np.linspace(-2.64286,-2.58,1)
 
-nn=3 # Number of lines to fit the data to
+nn=8 # Number of lines to fit the data to
 dlist=np.identity(nn) # Identity matrix (delta)
 
 # ------ CALCULATING OPTIMAL PARAMETERS ------
@@ -107,6 +107,7 @@ for lin in range(len(lineerrs)):
 
 xx=np.linspace(15,27,10)
 
+plt.rcParams.update({'font.size': 10}) # Adjust font size (10 is default, 15 is fine, 20 is big, 30 is very big, etc.)
 for n in range(nn):
     plt.fill_between(xx,n*(combo[0]*xx+combo[1])+combo[2]-errsperlin[n],n*(combo[0]*xx+combo[1])+combo[2]+errsperlin[n],alpha=0.2,color='lightgreen')
     plt.plot(xx,n*(combo[0]*xx+combo[1])+combo[2],'--k')
@@ -143,6 +144,7 @@ plt.show()
 #plt.plot(err_sum_list,'k')
 plt.show()
 
+"""
 # ------ FORMATTING ERROR FILE ------
 
 for i in range(len(test_log)):
@@ -169,7 +171,7 @@ for i in range(len(k)):
     f.write(str(int(k[i][0]))+' '+str(int(k[i][1]))+' '+str(format(k[i][2],'.6f'))+' '+str(format(k[i][3],'.5f'))+' '+str(format(k[i][4],'.5f'))+' '+str(format(k[i][5],'.4f'))+' '+str(format(k[i][6],'.4f'))+' || '+str(format(modelpred[i],'.4f'))+' '+modelerr_log[i]+' '+str(format(10**modelpred[i],'.4f'))+' '+modelerr[i]+' '+str(test_log[i])+'\n')
     
 f.close()
-
+"""
 # ------ NORMAL DISTRIBUTION CALCULATION ----
 
 # Generate some data for this demonstration.
@@ -208,8 +210,16 @@ plt.plot(xx,xx*combo[0]+combo[1]+combo[2],'--k')
 # ------ BAYESIAN FIT --------
 
 
+# Collapsed Linear Regression
+
+collapsed=[]
+for i in range(len(ylist)):
+    collapsed.append(ylist[i]-(line[i]-1)*(xlist[i]*combo[0]+combo[1]))
+
+# Bayesian Functions
+
 def posterior(Phi, t, alpha, beta, return_inverse=False):
-    """Computes mean and covariance matrix of the posterior distribution."""
+    
     S_N_inv = alpha * np.eye(Phi.shape[1]) + beta * Phi.T.dot(Phi)
     S_N = np.linalg.inv(S_N_inv)
     m_N = beta * S_N.dot(Phi.T).dot(t)
@@ -219,45 +229,15 @@ def posterior(Phi, t, alpha, beta, return_inverse=False):
     else:
         return m_N, S_N
 
-
 def posterior_predictive(Phi_test, m_N, S_N, beta):
-    """Computes mean and variances of the posterior predictive distribution."""
     y = Phi_test.dot(m_N)
     # Only compute variances (diagonal elements of covariance matrix)
     y_var = 1 / beta + np.sum(Phi_test.dot(S_N) * Phi_test, axis=1)
     
     return y, y_var
 
-"""### Example datasets
-
-The datasets used in the following examples are based on $N$ scalar observations $x_{i = 1,\ldots,N}$ which are combined into a $N \times 1$ matrix $\mathbf{X}$. Target values $\mathbf{t}$ are generated from $\mathbf{X}$ with functions `f` and `g` which also generate random noise whose variance can be specified with the `noise_variance` parameter. We will use `f` for generating noisy samples from a straight line and `g` for generating noisy samples from a sinusoidal function.
-"""
-
-#f_w0 = -0.3
-#f_w1 =  0.5
-
-f_w0 = combo[1]+combo[2]
-f_w1 = combo[0]
-
-
-
-
-"""### Basis functions
-
-For straight line fitting, a model that is linear in its input variable $x$ is sufficient. Hence, we don't need to transform $x$ with a basis function which is equivalent to using an `identity_basis_function`. For fitting a linear model to a sinusoidal dataset we transform input $x$ with `gaussian_basis_function` and later with `polynomial_basis_function`. These non-linear basis functions are necessary to model the non-linear relationship between input $x$ and target $t$. The design matrix $\boldsymbol\Phi$ can be computed from observations $\mathbf{X}$ and a parametric basis function with function `expand`. This function also prepends a column vector $\mathbf{1}$ according to $\phi_0(x) = 1$.
-"""
-
 def identity_basis_function(x):
     return x
-
-
-def gaussian_basis_function(x, mu, sigma=0.1):
-    return np.exp(-0.5 * (x - mu) ** 2 / sigma ** 2)
-
-
-def polynomial_basis_function(x, power):
-    return x ** power
-
 
 def expand(x, bf, bf_args=None):
     if bf_args is None:
@@ -265,20 +245,8 @@ def expand(x, bf, bf_args=None):
     else:
         return np.concatenate([np.ones(x.shape)] + [bf(x, bf_arg) for bf_arg in bf_args], axis=1)
 
-"""### Straight line fitting
-
-For straight line fitting, we use a linear regression model of the form $y(x, \mathbf{w}) = w_0 + w_1 x$ and do Bayesian inference for model parameters $\mathbf{w}$. Predictions are made with the posterior predictive distribution. Since this model has only two parameters, $w_0$ and $w_1$, we can visualize the posterior density in 2D which is done in the first column of the following output. Rows use an increasing number of training data from a training dataset.
-"""
-
-# Commented out IPython magic to ensure Python compatibility.
-import numpy as np
-import matplotlib.pyplot as plt
-
-from scipy import stats
-
-
 def plot_data(x, t):
-    plt.scatter(x, t, marker='o', c="k", s=20)
+    plt.scatter(x, t, marker='o', c="k", s=50)
 
 
 def plot_truth(x, y, label='Truth'):
@@ -290,55 +258,19 @@ def plot_predictive(x, y, std, y_label='Prediction', std_label='Uncertainty', pl
     std = std.ravel()
 
     plt.plot(x, y, label=y_label)
-    plt.fill_between(x.ravel(), y + std, y - std, alpha = 0.5, label=std_label)
+    plt.fill_between(x.ravel(), y + std, y - std, alpha = 0.1, label=std_label)
 
     if plot_xy_labels:
         plt.xlabel('x')
         plt.ylabel('y')
 
+# Bayesian Parameters
 
-def plot_posterior_samples(x, ys, plot_xy_labels=True):
-    plt.plot(x, ys[:, 0], 'r-', alpha=0.5, label='Post. samples')
-    for i in range(1, ys.shape[1]):
-        plt.plot(x, ys[:, i], 'r-', alpha=0.5)
+f_w0 = combo[1]+combo[2] # Use as prior the "collapsed" MSE parameters
+f_w1 = combo[0]
 
-    if plot_xy_labels:
-        plt.xlabel('x')
-        plt.ylabel('y')
-
-
-def plot_posterior(mean, cov, w0, w1):
-    resolution = 100
-
-    grid_x = grid_y = np.linspace(-1, 1, resolution)
-    grid_flat = np.dstack(np.meshgrid(grid_x, grid_y)).reshape(-1, 2)
-
-    densities = stats.multivariate_normal.pdf(grid_flat, mean=mean.ravel(), cov=cov).reshape(resolution, resolution)
-    plt.imshow(densities, origin='lower', extent=(-1, 1, -1, 1))
-    plt.scatter(w0, w1, marker='x', c="r", s=20, label='Truth')
-
-    plt.xlabel('w0')
-    plt.ylabel('w1')
-
-
-def print_comparison(title, a, b, a_prefix='np', b_prefix='br'):
-    print(title)
-    print('-' * len(title))
-    print(f'{a_prefix}:', a)
-    print(f'{b_prefix}:', b)
-    print()
-
-import matplotlib.pyplot as plt
-# %matplotlib inline
-
-# Training dataset sizes
-N_list = [1, int(len(xlist)/2), int(len(xlist))]
-
-
-beta = 1/(min(err_sum_list)/(len(xlist)))
-alpha = 1
-
-# Training observations in [-1, 1)
+beta = 1/(min(err_sum_list)/(len(xlist))) # beta=1/variance
+alpha = 1 # alpha=1
 
 xlist_fbay=[]
 for i in range(len(xlist)):
@@ -361,53 +293,30 @@ t = collapsed_fbay
 # Test observations
 
 X_test = np.linspace(17, 25, 100).reshape(-1,1)
-
-# Function values without noise 
-
-y_true = f_w1*X_test+f_w0
     
-# Design matrix of test observations
-Phi_test = expand(X_test, identity_basis_function)
+Phi_test = expand(X_test, identity_basis_function) # Design matrix of test observations
 
 plt.figure(figsize=(15, 10))
 plt.subplots_adjust(hspace=0.4)
 
-for i, N in enumerate(N_list):
+for i, N in enumerate([len(collapsed)]):
     X_N = X[:N]
     t_N = t[:N]
 
-    # Design matrix of training observations
-    Phi_N = expand(X_N, identity_basis_function)
+    Phi_N = expand(X_N, identity_basis_function) # Design matrix of training observations
     
-    # Mean and covariance matrix of posterior
-    m_N, S_N = posterior(Phi_N, t_N, alpha, beta)
+    m_N, S_N = posterior(Phi_N, t_N, alpha, beta) # Mean and covariance matrix of posterior
     
-    # Mean and variances of posterior predictive 
-    y, y_var = posterior_predictive(Phi_test, m_N, S_N, beta)
-    
-    # Draw 5 random weight samples from posterior and compute y values
-    w_samples = np.random.multivariate_normal(m_N.ravel(), S_N, 5).T
-    y_samples = Phi_test.dot(w_samples)
-    
-    plt.subplot(len(N_list), 3, i * 3 + 1)
-    plot_posterior(m_N, S_N, f_w0, f_w1)
-    plt.title(f'Posterior density (N = {N})')
-    plt.legend()
+    y, y_var = posterior_predictive(Phi_test, m_N, S_N, beta) # Mean and variances of posterior predictive 
 
-    plt.subplot(len(N_list), 3, i * 3 + 2)
-    plot_data(X_N, t_N)
-    plot_truth(X_test, y_true)
-    plot_posterior_samples(X_test, y_samples)
-    plt.ylim(-2.8, -0.5)
-    plt.legend()
-
-    plt.subplot(len(N_list), 3, i * 3 + 3)
-    plot_data(X_N, t_N)
-    plot_truth(X_test, y_true, label=None)
+    plt.subplot()
+    plot_truth(X_test, f_w1*X_test+f_w0, label=None)
     plot_predictive(X_test, y, np.sqrt(y_var))
-    plt.ylim(-2.8, -0.5)
-    plt.legend()
-plt.savefig('bayesian.png')
+    plt.ylim([min(collapsed)-0.3*(max(collapsed)-min(collapsed)),max(collapsed)+0.4*(max(collapsed)-min(collapsed))])
+    plot_data(X_N, t_N)
+    plt.legend(prop={'size': 25})
+    
+plt.savefig('BayesianPlot.eps', format='eps')
 
 
 # ------- END ----------
