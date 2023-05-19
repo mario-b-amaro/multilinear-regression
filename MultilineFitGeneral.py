@@ -26,11 +26,11 @@ for i in range(len(k)):
 
 # Define an interval and step for each parameter a, b, c
 
-alist=np.linspace(-0.014,-0.01,1)
-blist=np.linspace(0.56727272,0.75,1)
-clist=np.linspace(-2.64286,-2.58,1)
+alist=np.linspace(-0.18,-0.14,12)
+blist=np.linspace(5,3.5,12)
+clist=np.linspace(-2.1,-2.5,8)
 
-nn=8 # Number of lines to fit the data to
+nn=2 # Number of lines to fit the data to
 dlist=np.identity(nn) # Identity matrix (delta)
 
 # ------ CALCULATING OPTIMAL PARAMETERS ------
@@ -113,7 +113,7 @@ for n in range(nn):
     plt.plot(xx,n*(combo[0]*xx+combo[1])+combo[2],'--k')
 plt.scatter(xlist,ylist,s=75,c='k',marker='.')
 plt.ylim([-2.9,-0.5])
-plt.xlim([16,26])
+plt.xlim([16,25])
 plt.xlabel(chr(961)+'´')
 plt.ylabel('$log_{10}(|RF(R)|^2)$')
 plt.savefig(r'C:\Users\Mário Amaro\Desktop\PlotsChong\n3_mse.eps', format='eps')
@@ -121,7 +121,7 @@ plt.show()
 
 plt.scatter(xlist,ylist,s=75,c='k',marker='.')
 plt.ylim([-2.9,-0.5])
-plt.xlim([16,26])
+plt.xlim([16,25])
 plt.xlabel(chr(961)+'´')
 plt.ylabel('$log_{10}(|RF(R)|^2)$')
 for n in range(nn):
@@ -292,7 +292,7 @@ t = collapsed_fbay
 
 # Test observations
 
-X_test = np.linspace(17, 25, 100).reshape(-1,1)
+X_test = np.linspace(17, 24, 100).reshape(-1,1)
     
 Phi_test = expand(X_test, identity_basis_function) # Design matrix of test observations
 
