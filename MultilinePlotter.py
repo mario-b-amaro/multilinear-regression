@@ -1,9 +1,9 @@
 """
 THIS SCRIPT INTAKES THE OPTIMAL PARAMETERS AND N AND GENERATES:
     
-    > 1. OBTAIN DATA FILE (MSE) (TXT)
+    > 1. FULL DATA FILE (MSE) (TXT)
     > 2. MRSQ PLOT + CONFIDENCE (EPS)
-    > 3. PLOT SOURCE FILE (MSE) (TXT)
+    > 3. SIMPLE DATA FILE (MSE) (TXT)
     > 4. GROUND ERROR PLOT (EPS)
     > 5. BAYESIAN PLOT (EPS)
     
@@ -52,10 +52,10 @@ for i in range(len(k)):
 --------------- DEFINE PARAMETERS ----------------
 """
 
-nn=3
-a=-0.06636363
-b=2.05
-c=-2.505
+nn=8
+a=-0.014
+b=0.56727272
+c=-2.64286
 
 combo=[a,b,c]
 
@@ -91,7 +91,7 @@ for k in range(len(conj_list)):
 """
 
 k=np.loadtxt('Data.txt', skiprows=1, usecols=(0,1,2,3,4,6,7))
-f= open('Data_Model&Errors.txt',"w+")
+f= open('MSE_Model&Errors_Source.txt',"w+")
 
 modelpred=[line[i]*(combo[0]*xlist[i]+combo[1])+combo[2] for i in range(len(xlist))] # Model prediction for log(|RF(R)|^2)
 modelerr_log=[ylist[i]-modelpred[i] for i in range(len(ylist))] # Error_log = log(|RF(R)|^2) - Model_log(|RF(R)|^2)
@@ -150,11 +150,12 @@ for n in range(nn):
     plt.fill_between(xx,n*(combo[0]*xx+combo[1])+combo[2]-sigma*errsperlin[n],n*(combo[0]*xx+combo[1])+combo[2]+sigma*errsperlin[n],alpha=0.2,color='lightgreen')
     plt.plot(xx,n*(combo[0]*xx+combo[1])+combo[2],'--k')
 plt.scatter(xlist,ylist,s=75,c='k',marker='.')
-plt.tick_params(bottom=True, top=True, left=True, right=True)
+plt.tick_params(bottom=True, top=True, left=True, right=True, direction='in')
 plt.ylim([-2.85,-0.5])
 plt.xlim([16,24])
 plt.xlabel(chr(961)+'´')
 plt.ylabel('$log_{10}(|RF(R)|^2)$')
+plt.tight_layout()
 plt.savefig('MSE_Plot.eps', format='eps')
 plt.show()  
 
@@ -176,14 +177,17 @@ f.close()
 
 """
 
-xrange=np.linspace(0,len(modelerr),100)
+#xrange=np.linspace(0,len(modelerr),100)
+xrange=np.linspace(min([k[i][0] for i in range(len(k))]),max([k[i][0] for i in range(len(k))]),100)
 plt.figure(constrained_layout=True)
 plt.plot(xrange,0*xrange,'--r')
-plt.scatter(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],s=75,c='k',marker='.')
-plt.errorbar(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],yerr=[low_err,up_err],c='k',fmt='.')
+#plt.scatter(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],s=75,c='k',marker='.')
+plt.scatter([k[i][0] for i in range(len(k))],[float(modelerr[i]) for i in range(len(modelerr))],s=75,c='k',marker='.')
+#plt.errorbar(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],yerr=[low_err,up_err],c='k',fmt='.')
+plt.errorbar([k[i][0] for i in range(len(k))],[float(modelerr[i]) for i in range(len(modelerr))],yerr=[low_err,up_err],c='k',fmt='.')
 plt.ylabel(r'$\mathregular{|RF(R)|^2-10^{(k-1)(\alpha x_{i}+\beta)-o}}$')
-plt.xlabel('Data Point (i)')
-plt.savefig('abserrors', dpi=800)
+plt.xlabel('Mass Number (A)')
+plt.savefig('abserrors.eps', format='eps', dpi=800)
 plt.show()
     
 #plt.plot(err_sum_list,'k')
@@ -246,12 +250,12 @@ def plot_predictive(x, y, std, y_label='Prediction', std_label='Uncertainty', pl
     y = y.ravel()
     std = std.ravel()
 
-    plt.plot(x, y, label=y_label)
-    plt.fill_between(x.ravel(), y + std, y - std, alpha = 0.1, label=std_label)
+    plt.plot(x, y, label=y_label,color='k')
+    plt.fill_between(x.ravel(), y + std, y - std, alpha = 0.1, label=std_label,color='lightgreen')
 
     if plot_xy_labels:
-        plt.xlabel('x')
-        plt.ylabel('y')
+        plt.xlabel(chr(961)+'´')
+        plt.ylabel('$log_{10}(|RF(R)|^2)$')
 
 # Bayesian Parameters
 
@@ -259,7 +263,7 @@ f_w0 = combo[1]+combo[2] # Use as prior the "collapsed" MSE parameters
 f_w1 = combo[0]
 
 beta = 1/(sum(sumlist)/(len(xlist))) # beta=1/variance
-alpha = 1 # alpha=1
+alpha = (sum(sumlist)/(len(xlist))) # alpha=1
 
 xlist_fbay=[]
 for i in range(len(xlist)):
@@ -298,11 +302,12 @@ for i, N in enumerate([len(collapsed)]):
     
     y, y_var = posterior_predictive(Phi_test, m_N, S_N, beta) # Mean and variances of posterior predictive 
 
+    plt.rcParams.update({'font.size': 35})
     plt.subplot()
     plot_truth(X_test, f_w1*X_test+f_w0, label=None)
     plot_predictive(X_test, y, np.sqrt(y_var))
     plt.ylim([min(collapsed)-0.3*(max(collapsed)-min(collapsed)),max(collapsed)+0.4*(max(collapsed)-min(collapsed))])
     plot_data(X_N, t_N)
-    plt.legend(prop={'size': 25})
+    plt.legend(prop={'size': 30})
     
 plt.savefig('BayesianPlot.eps', format='eps')
