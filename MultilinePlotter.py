@@ -241,7 +241,7 @@ def expand(x, bf, bf_args=None):
         return np.concatenate([np.ones(x.shape)] + [bf(x, bf_arg) for bf_arg in bf_args], axis=1)
 
 def plot_data(x, t):
-    plt.scatter(x, t, marker='o', c="k", s=75)
+    plt.scatter(x, t, marker='o', c="k", s=20)
 
 
 def plot_truth(x, y, label='Truth'):
@@ -327,6 +327,7 @@ for i, N in enumerate([len(collapsed)]):
     plt.savefig('PosteriorPlot.eps', format='eps')
     plt.show()
 
+    plt.rcParams.update({'font.size': 15})
     plt.subplot()
     for n in range(nn):
         plot_truth(X_test, n*(f_w1*X_test+f_w0)-(n-1)*combo[2], label=None)
