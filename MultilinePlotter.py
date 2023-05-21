@@ -262,11 +262,16 @@ def plot_predictive(x, y, std, y_label='Prediction', std_label='Uncertainty', pl
 def plot_posterior(mean, cov, w0, w1, m_N):
     resolution = 1000
 
-    grid_x = np.linspace(w0-0.6, w0+0.6, resolution)
-    grid_y = np.linspace(w1-1.1*abs(w1), w1+1.2*abs(w1), resolution)
+    x_min=w0-0.6
+    x_max=w0+0.6
+    y_min=w1-1.1*abs(w1)
+    y_max=w1+1.2*abs(w1)
+    
+    grid_x = np.linspace(x_min, x_max, resolution)
+    grid_y = np.linspace(y_min, y_max, resolution)
     grid_flat = np.dstack(np.meshgrid(grid_x, grid_y))
     densities = stats.multivariate_normal.pdf(grid_flat, mean=mean.ravel(), cov=cov)
-    plt.imshow(densities, cmap='coolwarm', origin='lower', extent=(w0-0.6, w0+0.6, w1-1.1*abs(w1), w1+1.2*abs(w1)),aspect='auto')
+    plt.imshow(densities, cmap='coolwarm', origin='lower', extent=(x_min, x_max, y_min, y_max),aspect='auto')
     plt.scatter(w0, w1, marker='x', c="k", s=45, label='Prior')
     plt.scatter(m_N[0], m_N[1], marker='o', c="k", s=45, label='Predictive')
 
