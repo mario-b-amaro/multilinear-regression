@@ -16,12 +16,13 @@ SOME OPTIMAL PARAMETERS:
     > N=1: [a,b,c]=[0,0,-1.68484848]
     > N=3: [a,b,c]=[-0.06636363,2.05,-2.505]
     > N=8: [a,b,c]=[-0.014,0.56727272,-2.64286]
-    
+ 
 """
 
 import numpy as np
 import math as m
 import matplotlib.pyplot as plt
+from scipy import stats
 
 """
 ----------------- DATA IMPORT -----------------
@@ -52,10 +53,10 @@ for i in range(len(k)):
 --------------- DEFINE PARAMETERS ----------------
 """
 
-nn=8
-a=-0.014
-b=0.56727272
-c=-2.64286
+nn=3
+a=-0.06636363
+b=2.05
+c=-2.505
 
 combo=[a,b,c]
 
@@ -145,7 +146,7 @@ for lin in range(len(lineerrs)):
 
 xx=np.linspace(15,27,10)
 
-plt.rcParams.update({'font.size': 15}) # Adjust font size (10 is default, 15 is fine, 20 is big, 30 is very big, etc.)
+plt.rcParams.update({'font.size': 17}) # Adjust font size (10 is default, 15 is fine, 20 is big, 30 is very big, etc.)
 for n in range(nn):
     plt.fill_between(xx,n*(combo[0]*xx+combo[1])+combo[2]-sigma*errsperlin[n],n*(combo[0]*xx+combo[1])+combo[2]+sigma*errsperlin[n],alpha=0.2,color='lightgreen')
     plt.plot(xx,n*(combo[0]*xx+combo[1])+combo[2],'--k')
@@ -177,16 +178,17 @@ f.close()
 
 """
 
-#xrange=np.linspace(0,len(modelerr),100)
-xrange=np.linspace(min([k[i][0] for i in range(len(k))]),max([k[i][0] for i in range(len(k))]),100)
+stdv=(sum([abs(float(modelerr[i])) for i in range(len(modelerr))])/len(modelerr))
+
+xrange=np.linspace(0,len(modelerr),100)
 plt.figure(constrained_layout=True)
 plt.plot(xrange,0*xrange,'--r')
-#plt.scatter(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],s=75,c='k',marker='.')
-plt.scatter([k[i][0] for i in range(len(k))],[float(modelerr[i]) for i in range(len(modelerr))],s=75,c='k',marker='.')
-#plt.errorbar(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],yerr=[low_err,up_err],c='k',fmt='.')
-plt.errorbar([k[i][0] for i in range(len(k))],[float(modelerr[i]) for i in range(len(modelerr))],yerr=[low_err,up_err],c='k',fmt='.')
+plt.fill_between(xrange,0*xrange+stdv,0*xrange-stdv*sigma,alpha=0.2,color='lightcoral')
+plt.scatter(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],s=75,c='k',marker='.')
+plt.errorbar(range(len(modelerr)),[float(modelerr[i]) for i in range(len(modelerr))],yerr=[low_err,up_err],c='k',fmt='.')
 plt.ylabel(r'$\mathregular{|RF(R)|^2-10^{(k-1)(\alpha x_{i}+\beta)-o}}$')
-plt.xlabel('Mass Number (A)')
+plt.xlabel('Datapoint (i)')
+plt.tight_layout()
 plt.savefig('abserrors.eps', format='eps', dpi=800)
 plt.show()
     
@@ -197,7 +199,7 @@ plt.show()
 ------------ 5. BAYESIAN PLOT (EPS) -----------------
 
 Bayesian approach directly adapted from Martin Krasser's code:
-https://github.com/krasserm/bayesian-machine-learning 
+https://github.com/krasserm/bayesian-machine-learning/tree/dev/bayesian-linear-regression
 
 Refer to it for a complete documentation regarding the process
 
@@ -239,7 +241,7 @@ def expand(x, bf, bf_args=None):
         return np.concatenate([np.ones(x.shape)] + [bf(x, bf_arg) for bf_arg in bf_args], axis=1)
 
 def plot_data(x, t):
-    plt.scatter(x, t, marker='o', c="k", s=50)
+    plt.scatter(x, t, marker='o', c="k", s=75)
 
 
 def plot_truth(x, y, label='Truth'):
@@ -251,11 +253,25 @@ def plot_predictive(x, y, std, y_label='Prediction', std_label='Uncertainty', pl
     std = std.ravel()
 
     plt.plot(x, y, label=y_label,color='k')
-    plt.fill_between(x.ravel(), y + std, y - std, alpha = 0.1, label=std_label,color='lightgreen')
+    plt.fill_between(x.ravel(), y + std, y - std, alpha = 0.1, label=std_label,color='lightblue')
 
     if plot_xy_labels:
         plt.xlabel(chr(961)+'´')
         plt.ylabel('$log_{10}(|RF(R)|^2)$')
+        
+def plot_posterior(mean, cov, w0, w1, m_N):
+    resolution = 1000
+
+    grid_x = np.linspace(w0-0.6, w0+0.6, resolution)
+    grid_y = np.linspace(w1-1.1*abs(w1), w1+1.2*abs(w1), resolution)
+    grid_flat = np.dstack(np.meshgrid(grid_x, grid_y))
+    densities = stats.multivariate_normal.pdf(grid_flat, mean=mean.ravel(), cov=cov)
+    plt.imshow(densities, cmap='coolwarm', origin='lower', extent=(w0-0.6, w0+0.6, w1-1.1*abs(w1), w1+1.2*abs(w1)),aspect='auto')
+    plt.scatter(w0, w1, marker='x', c="k", s=45, label='Prior')
+    plt.scatter(m_N[0], m_N[1], marker='o', c="k", s=45, label='Predictive')
+
+    plt.xlabel(r'$\mathregular{\alpha}$')
+    plt.ylabel(r'$\mathregular{\beta}$+o')
 
 # Bayesian Parameters
 
@@ -285,7 +301,7 @@ t = collapsed_fbay
 
 # Test observations
 
-X_test = np.linspace(17, 25, 100).reshape(-1,1)
+X_test = np.linspace(16, 25, 100).reshape(-1,1)
     
 Phi_test = expand(X_test, identity_basis_function) # Design matrix of test observations
 
@@ -304,10 +320,22 @@ for i, N in enumerate([len(collapsed)]):
 
     plt.rcParams.update({'font.size': 35})
     plt.subplot()
-    plot_truth(X_test, f_w1*X_test+f_w0, label=None)
-    plot_predictive(X_test, y, np.sqrt(y_var))
-    plt.ylim([min(collapsed)-0.3*(max(collapsed)-min(collapsed)),max(collapsed)+0.4*(max(collapsed)-min(collapsed))])
-    plot_data(X_N, t_N)
-    plt.legend(prop={'size': 30})
+    plt.tick_params(bottom=True, top=True, left=True, right=True, direction='in')
+    plot_posterior(m_N, S_N, f_w0, f_w1, m_N)
+    #plt.legend()
+    plt.tight_layout()
+    plt.savefig('PosteriorPlot.eps', format='eps')
+    plt.show()
+
+    plt.subplot()
+    for n in range(nn):
+        plot_truth(X_test, n*(f_w1*X_test+f_w0)-(n-1)*combo[2], label=None)
+    for n in range(nn):
+        plot_predictive(X_test, n*y-(n-1)*combo[2], np.sqrt(y_var))
+    plt.ylim([-2.85,-0.5])
+    plt.xlim([16,24])
+    plot_data(xlist, ylist)
+    plt.tight_layout()
+    plt.show()
     
-plt.savefig('BayesianPlot.eps', format='eps')
+    plt.savefig('BayesianPlot.eps', format='eps')
